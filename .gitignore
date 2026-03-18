@@ -1,6 +1,9 @@
 # Claude Code local settings
 .claude/
 
+# Local planning / ideas doc (not part of the project)
+IDEAS.md
+
 # macOS
 .DS_Store
 
