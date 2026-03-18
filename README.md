@@ -1,4 +1,4 @@
-# 🌍 Universal Translator
+# 🌍 BabelLocal
 
 A universal language translator that runs entirely inside your browser — no server, no API keys, no data leaving your device.
 
