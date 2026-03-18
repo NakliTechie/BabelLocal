@@ -46,6 +46,8 @@ This is the more interesting question.
 
 The trade-off is honest: a ~600 MB one-time download, and quality that is good but not quite at the level of the top commercial services. For most real-world use cases — especially ones where privacy matters — it's a worthwhile exchange.
 
+**The download is genuinely one-time.** The model is cached in your browser's storage — close the tab, shut down your laptop, come back a week later and it's still there, ready in a few seconds. No re-download. The only way it disappears is if you explicitly clear your browser's site data.
+
 ---
 
 ## Tech
