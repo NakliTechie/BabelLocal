@@ -148,6 +148,7 @@ h1 { font-size: 1.5rem; font-weight: 700; color: #1a202c; }
 }
 .picker-option:hover  { background: #f0f4f8; }
 .picker-option.active { background: #ebf4ff; color: #667eea; font-weight: 600; }
+.picker-option.kb     { background: #f0f4f8; outline: 2px solid #667eea; outline-offset: -2px; }
 .swap-btn {
   background: white;
   border: 1px solid #e2e8f0;
@@ -545,10 +546,32 @@ class LangPicker {
     this.btn.classList.remove('open');
   }
 
+  _options() { return [...this.list.querySelectorAll('.picker-option')]; }
+
+  _moveFocus(delta) {
+    const opts = this._options();
+    if (!opts.length) return;
+    const cur = this.list.querySelector('.kb');
+    let idx = cur ? opts.indexOf(cur) + delta : (delta > 0 ? 0 : opts.length - 1);
+    idx = Math.max(0, Math.min(opts.length - 1, idx));
+    cur?.classList.remove('kb');
+    opts[idx].classList.add('kb');
+    opts[idx].scrollIntoView({ block: 'nearest' });
+  }
+
   _bind() {
     this.btn.addEventListener('click', e => { e.stopPropagation(); this.isOpen ? this._close() : this._open(); });
-    this.search.addEventListener('input', () => this._renderList(this.search.value));
-    this.search.addEventListener('keydown', e => { if (e.key === 'Escape') this._close(); });
+    this.search.addEventListener('input', () => { this._renderList(this.search.value); });
+    this.search.addEventListener('keydown', e => {
+      if (e.key === 'Escape')    { this._close(); }
+      else if (e.key === 'ArrowDown')  { e.preventDefault(); this._moveFocus(1); }
+      else if (e.key === 'ArrowUp')    { e.preventDefault(); this._moveFocus(-1); }
+      else if (e.key === 'Enter') {
+        e.preventDefault();
+        const focused = this.list.querySelector('.kb');
+        if (focused) this._select(focused.dataset.code);
+      }
+    });
     document.addEventListener('click', e => { if (!this.wrapper.contains(e.target)) this._close(); });
   }
 
