@@ -2,6 +2,8 @@
 
 A universal language translator that runs entirely inside your browser — no server, no API keys, no data leaving your device.
 
+**[→ Try it live](https://nakliTechie.github.io/Universal-Translator)**
+
 ## What it does
 
 Translates text between 55 languages using Meta's NLLB-200 model, loaded directly into the browser via WebAssembly. The model downloads once (~600 MB), is cached locally, and works offline from that point on.
