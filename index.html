@@ -369,10 +369,6 @@ textarea::placeholder { color: #a0aec0; }
     <div class="panels">
       <div class="panel">
         <textarea id="input" placeholder="Enter text to translate…" maxlength="2000"></textarea>
-        <div class="translit-section" id="srcTranslitSection">
-          <div class="translit-label">Romanization</div>
-          <div class="translit-text" id="srcTranslitText"></div>
-        </div>
         <div class="panel-footer">
           <span class="char-count" id="charCount">0 / 2000</span>
           <button class="icon-btn" id="clearBtn">✕ Clear</button>
@@ -381,6 +377,10 @@ textarea::placeholder { color: #a0aec0; }
 
       <div class="panel">
         <div class="output placeholder" id="output">Translation will appear here…</div>
+        <div class="translit-section" id="translitSection">
+          <div class="translit-label">Romanization</div>
+          <div class="translit-text" id="translitText"></div>
+        </div>
         <div class="panel-footer">
           <span></span>
           <button class="icon-btn" id="copyBtn" disabled>⎘ Copy</button>
@@ -615,8 +615,8 @@ class LangPicker {
 
 // ─── Initialise pickers ───────────────────────────────────────────────────────
 const pickers = {
-  src: new LangPicker('srcLangWrap', 'eng_Latn', () => { updateSrcTransliteration(); if ($input.value.trim() && modelReady) doTranslate(); }),
-  tgt: new LangPicker('tgtLangWrap', 'hin_Deva', () => { if ($input.value.trim() && modelReady) doTranslate(); }),
+  src: new LangPicker('srcLangWrap', 'eng_Latn', () => { if ($input.value.trim() && modelReady) doTranslate(); }),
+  tgt: new LangPicker('tgtLangWrap', 'hin_Deva', () => { updateTransliteration(); if ($input.value.trim() && modelReady) doTranslate(); }),
 };
 
 // ─── Web Worker ───────────────────────────────────────────────────────────────
@@ -695,8 +695,8 @@ const $progressLabel= document.getElementById('progressLabel');
 const $progressPct  = document.getElementById('progressPct');
 const $statusDot       = document.getElementById('statusDot');
 const $statusText      = document.getElementById('statusText');
-const $srcTranslitSection = document.getElementById('srcTranslitSection');
-const $srcTranslitText    = document.getElementById('srcTranslitText');
+const $translitSection = document.getElementById('translitSection');
+const $translitText    = document.getElementById('translitText');
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let modelReady   = false;
@@ -708,7 +708,7 @@ let debounce     = null;
 let anyAscii = null;
 document.addEventListener('anyascii-ready', () => {
   anyAscii = window.__anyAscii;
-  updateSrcTransliteration();
+  updateTransliteration();
 });
 
 // ─── Worker message handler ───────────────────────────────────────────────────
@@ -786,14 +786,13 @@ function needsTranslit(langCode) {
   return !langCode.endsWith('_Latn');
 }
 
-function updateSrcTransliteration() {
-  const srcLang = pickers.src.getValue();
-  const inputText = $input.value.trim();
-  if (anyAscii && inputText && needsTranslit(srcLang)) {
-    $srcTranslitText.textContent = anyAscii(inputText);
-    $srcTranslitSection.classList.add('visible');
+function updateTransliteration() {
+  const tgtLang = pickers.tgt.getValue();
+  if (anyAscii && outputText && needsTranslit(tgtLang)) {
+    $translitText.textContent = anyAscii(outputText);
+    $translitSection.classList.add('visible');
   } else {
-    $srcTranslitSection.classList.remove('visible');
+    $translitSection.classList.remove('visible');
   }
 }
 
@@ -802,9 +801,11 @@ function renderOutput(text, streaming) {
     $output.textContent = 'Translation will appear here…';
     $output.className   = 'output placeholder';
     $copyBtn.disabled   = true;
+    $translitSection.classList.remove('visible');
   } else {
     $output.textContent = text;
     $output.className   = streaming ? 'output streaming' : 'output';
+    if (!streaming) updateTransliteration();
   }
 }
 
@@ -828,8 +829,6 @@ $input.addEventListener('input', () => {
   const len = $input.value.length;
   $charCount.textContent = `${len} / 2000`;
   $charCount.className   = 'char-count' + (len > 1800 ? ' warn' : '');
-
-  updateSrcTransliteration();
 
   if (document.getElementById('autoTranslate').checked) {
     clearTimeout(debounce);
@@ -858,7 +857,6 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   outputText   = '';
   $charCount.textContent = '0 / 2000';
   renderOutput('', false);
-  $srcTranslitSection.classList.remove('visible');
 });
 
 $copyBtn.addEventListener('click', async () => {
