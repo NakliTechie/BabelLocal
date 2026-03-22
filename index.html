@@ -314,6 +314,30 @@ textarea::placeholder { color: #a0aec0; }
   color: #a0aec0;
 }
 
+/* ── Transliteration ── */
+.translit-section {
+  padding: 10px 20px 14px;
+  border-top: 1px dashed #e2e8f0;
+  background: #fafbfc;
+  display: none;
+}
+.translit-section.visible { display: block; }
+.translit-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #a0aec0;
+  margin-bottom: 6px;
+}
+.translit-text {
+  font-size: 0.88rem;
+  color: #718096;
+  font-style: italic;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
 /* ── Responsive ── */
 @media (max-width: 600px) {
   .panels { grid-template-columns: 1fr; }
@@ -353,6 +377,10 @@ textarea::placeholder { color: #a0aec0; }
 
       <div class="panel">
         <div class="output placeholder" id="output">Translation will appear here…</div>
+        <div class="translit-section" id="translitSection">
+          <div class="translit-label">Romanization</div>
+          <div class="translit-text" id="translitText"></div>
+        </div>
         <div class="panel-footer">
           <span></span>
           <button class="icon-btn" id="copyBtn" disabled>⎘ Copy</button>
@@ -397,6 +425,12 @@ textarea::placeholder { color: #a0aec0; }
    onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
   ↗ github
 </a>
+
+<script type="module">
+import anyAscii from 'https://esm.sh/any-ascii';
+window.__anyAscii = anyAscii;
+document.dispatchEvent(new CustomEvent('anyascii-ready'));
+</script>
 
 <script>
 // ─── Language table (NLLB-200 BCP-47 codes) ──────────────────────────────────
@@ -582,7 +616,7 @@ class LangPicker {
 // ─── Initialise pickers ───────────────────────────────────────────────────────
 const pickers = {
   src: new LangPicker('srcLangWrap', 'eng_Latn', () => { if ($input.value.trim() && modelReady) doTranslate(); }),
-  tgt: new LangPicker('tgtLangWrap', 'hin_Deva', () => { if ($input.value.trim() && modelReady) doTranslate(); }),
+  tgt: new LangPicker('tgtLangWrap', 'hin_Deva', () => { updateTransliteration(); if ($input.value.trim() && modelReady) doTranslate(); }),
 };
 
 // ─── Web Worker ───────────────────────────────────────────────────────────────
@@ -659,14 +693,23 @@ const $progressCard = document.getElementById('progressCard');
 const $progressFill = document.getElementById('progressFill');
 const $progressLabel= document.getElementById('progressLabel');
 const $progressPct  = document.getElementById('progressPct');
-const $statusDot    = document.getElementById('statusDot');
-const $statusText   = document.getElementById('statusText');
+const $statusDot       = document.getElementById('statusDot');
+const $statusText      = document.getElementById('statusText');
+const $translitSection = document.getElementById('translitSection');
+const $translitText    = document.getElementById('translitText');
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let modelReady   = false;
 let translating  = false;
 let outputText   = '';
 let debounce     = null;
+
+// ─── AnyAscii (transliteration) ──────────────────────────────────────────────
+let anyAscii = null;
+document.addEventListener('anyascii-ready', () => {
+  anyAscii = window.__anyAscii;
+  updateTransliteration();
+});
 
 // ─── Worker message handler ───────────────────────────────────────────────────
 worker.onmessage = ({ data }) => {
@@ -739,14 +782,30 @@ function setStatus(state, text) {
   $statusText.textContent = text;
 }
 
+function needsTranslit(langCode) {
+  return !langCode.endsWith('_Latn');
+}
+
+function updateTransliteration() {
+  const tgtLang = pickers.tgt.getValue();
+  if (anyAscii && outputText && needsTranslit(tgtLang)) {
+    $translitText.textContent = anyAscii(outputText);
+    $translitSection.classList.add('visible');
+  } else {
+    $translitSection.classList.remove('visible');
+  }
+}
+
 function renderOutput(text, streaming) {
   if (!text) {
     $output.textContent = 'Translation will appear here…';
     $output.className   = 'output placeholder';
     $copyBtn.disabled   = true;
+    $translitSection.classList.remove('visible');
   } else {
     $output.textContent = text;
     $output.className   = streaming ? 'output streaming' : 'output';
+    if (!streaming) updateTransliteration();
   }
 }
 
