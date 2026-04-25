@@ -58,6 +58,12 @@ The trade-off is honest: a ~600 MB one-time download, and quality that is good b
 - **[NLLB-200-distilled-600M](https://huggingface.co/facebook/nllb-200-distilled-600M)** — Meta's open multilingual model, 200-language coverage, q8-quantised for browser use
 - Zero build tooling. One HTML file.
 
+## Palette
+
+Coloured with **`china-02 · 米紙 MIZHI`** — hand-scroll mulberry paper, calligraphy. Warm cream body, indigo translation accent, brick-red brand mark.
+
+Palette pulled from [**Rangrez**](https://github.com/NakliTechie/rangrez), the global colour-palette library that backs all NakliTechie projects.
+
 ---
 
 ## Part of the NakliTechie series
